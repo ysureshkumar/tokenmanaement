@@ -53,7 +53,30 @@ public class FrontController {
 
 	@RequestMapping(value = "/")
 	public ModelAndView getHome(HttpServletRequest request) {
+		loadPendingTokensIntoQueue(request);
+		ModelAndView view = new ModelAndView("home");
+		return view;
+	}
 
+	@RequestMapping(value = "/home", method = RequestMethod.GET)
+	public ModelAndView getPage() {
+		ModelAndView view = new ModelAndView("home");
+		return view;
+	}
+
+	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	public ModelAndView getLogin() {
+		ModelAndView view = new ModelAndView("login");
+		return view;
+	}
+
+	@RequestMapping(value = "/aboutus", method = RequestMethod.GET)
+	public ModelAndView getAboutus() {
+		ModelAndView view = new ModelAndView("aboutus");
+		return view;
+	}
+
+	public void loadPendingTokensIntoQueue(HttpServletRequest request) {
 		context = new XmlWebApplicationContext();
 		context.setConfigLocations("/WEB-INF/applicationContext.xml");
 		context.setServletContext(request.getServletContext());
@@ -86,38 +109,7 @@ public class FrontController {
 			catch (Exception e) {
 				// TODO: handle exception
 			}
-		ModelAndView view = new ModelAndView("home");
-		return view;
 	}
-
-	@RequestMapping(value = "/home", method = RequestMethod.GET)
-	public ModelAndView getPage() {
-		ModelAndView view = new ModelAndView("home");
-		return view;
-	}
-
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public ModelAndView getLogin() {
-		ModelAndView view = new ModelAndView("login");
-		return view;
-	}
-
-	@RequestMapping(value = "/aboutus", method = RequestMethod.GET)
-	public ModelAndView getAboutus() {
-		ModelAndView view = new ModelAndView("aboutus");
-		return view;
-	}
-
-	/*
-	 * @RequestMapping(value="/loginvalidate" , method = RequestMethod.POST) //
-	 * public ModelAndView getLoginValidate(@RequestParam("username") Strig
-	 * username,@RequestParam("password") String password) { public ModelAndView
-	 * getLoginValidate(@PathVariable("username") String
-	 * username,@PathVariable("password") String password) {
-	 * System.out.println("username:" + username); System.out.println("password:"+
-	 * password); ModelAndView view = new ModelAndView("output"); return view; }
-	 */
-
 	@RequestMapping(value = "/loginvalidate", method = RequestMethod.POST)
 	public ModelAndView getLoginValidate(@RequestParam("username") String username,
 			@RequestParam("password") String password, HttpServletRequest request) {
