@@ -34,7 +34,7 @@
 		<property name="driverClassName"
 			value="com.mysql.jdbc.Driver" />
 		<property name="url"
-			value="jdbc:mysql://localhost:3306/tokenmanagement?useSSL=true" />
+			value="jdbc:mysql://localhost:3306/TokenManagement" />
 		<property name="username" value="root" />
 		<property name="password" value="root" />
 	</bean>
@@ -52,9 +52,6 @@
 		<property name="annotatedClasses">
 			<list>
 				<value>com.pramati.model.Customer</value>
-				<value>com.pramati.model.Token</value>
-				<value>com.pramati.model.Counters</value>
-				<value>com.pramati.model.Users</value>
 			</list>
 		</property>
 	</bean>
@@ -64,27 +61,9 @@
 		<property name="sessionFactory" ref="sf" />
 	</bean>
 
-	<bean id="custDAO" class="com.pramati.daoimpl.CustomerDAOImpl">
+	<bean id="custoDAO" class="com.pramati.daoimpl.CustomerDAOImpl">
 		<property name="ht" ref="hbt" />
 	</bean>
-	
-	<bean id="tokenDAO" class="com.pramati.daoimpl.TokenDAOImpl">
-		<property name="ht" ref="hbt" />
-	</bean>
-	
-	<bean id="countersDAO" class="com.pramati.daoimpl.CountersDAOImpl">
-		<property name="ht" ref="hbt" />
-	</bean>
-	
-	<bean id="usersDAO" class="com.pramati.daoimpl.UsersDAOImpl">
-		<property name="ht" ref="hbt" />
-	</bean>
-	
-	<tx:annotation-driven />
-    <bean id="transactionManager"
-        class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sf"></property>
-    </bean>
 </beans>
 
 

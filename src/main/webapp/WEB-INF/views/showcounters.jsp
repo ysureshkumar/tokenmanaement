@@ -85,16 +85,15 @@ label {
 	cursor: pointer;
 }
 
-table{
-
+table {
 	width: 100%;
 }
-table tr{
 
+table tr {
 	width: 100%;
 }
-table tr td{
 
+table tr td {
 	width: 100%;
 	background-color: #D8AC64;
 	color: blue;
@@ -103,7 +102,7 @@ table tr td{
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
-	}
+}
 
 input[type=submit]:hover, [type=reset]:hvoer, [type=button]:hover {
 	background-color: #45a049;
@@ -120,8 +119,8 @@ div {
 	top: 80px;
 	right: 1000px;
 	width: 300px;
-	height: 200px; 
-	border: 5px solid #501D1D; 
+	height: 200px;
+	border: 5px solid #501D1D;
 	background-color: #f2f2f2;
 	color: black;
 	text-align: left;
@@ -132,7 +131,7 @@ div {
 	top: 80px;
 	right: 500px;
 	width: 300px;
-	height: 200px; 
+	height: 200px;
 	border: 5px solid #501D1D;
 	background-color: #f2f2f2;
 	color: black;
@@ -144,8 +143,8 @@ div {
 	top: 350px;
 	right: 1000px;
 	width: 300px;
-	height: 200px; 
-	border: 5px solid #501D1D; 
+	height: 200px;
+	border: 5px solid #501D1D;
 	background-color: #f2f2f2;
 	color: black;
 	text-align: left;
@@ -156,14 +155,12 @@ div {
 	top: 350px;
 	right: 500px;
 	width: 300px;
-	height: 200px; 
+	height: 200px;
 	border: 5px solid #501D1D;
 	background-color: #E5FDE7;
 	color: black;
 	text-align: left;
 }
-
-
 </style>
 
 <script type="text/javascript"
@@ -177,26 +174,7 @@ div {
 			e.preventDefault(e);
 		});
 	});
-	
-	function getCustomerDetails() {
-		var fm = document.getElementById("myForm");
-		fm.action = "./customerdetails";
-		fm.submit();
-		/*fm.id.value="";
-		fm.id.placeHolder="Enter Customer Id"; 
-		 */}
-	function getNextToken() {
-		var fm = document.getElementById("myForm1");
-		fm.action = "./nexttoken";
-		fm.submit();
 
-	}
-
-	function getServices() {
-		var fm = document.getElementById("myForm2");
-		fm.action = "./services";
-		fm.submit();
-	}
 </script>
 </head>
 <body>
@@ -204,9 +182,8 @@ div {
 		<li><a href="#">Profile</a></li>
 		<li class="dropdown"><a href="javascript:void(0)" class="dropbtn">Services</a>
 			<div class="dropdown-content">
-				<a href="./createcustomerpage">Create Customer</a> <a
-					href="./createtokenpage">Create Token</a> <a
-					href="./displaycounters">Display Counters</a>
+				<a href="./showcounters">Show Counters</a>
+				<a href="./managecounters">Manage Counters</a>
 			</div></li>
 		<li><a href="./login">Logout</a></li>
 	</ul>
@@ -219,7 +196,8 @@ div {
 					<td>${services1}</td>
 				</tr>
 				<tr>
-					<td align="right">Queue:</td><td>${queueOfTokens1}</td>
+					<td align="right">Queue:</td>
+					<td>${queueOfTokens1}</td>
 				</tr>
 				<tr>
 					<td align="right">Current Token:</td>
@@ -237,7 +215,8 @@ div {
 					<td>${services2}</td>
 				</tr>
 				<tr>
-					<td align="right">Queue:</td><td>${queueOfTokens2}</td>
+					<td align="right">Queue:</td>
+					<td>${queueOfTokens2}</td>
 				</tr>
 				<tr>
 					<td align="right">Current Token:</td>
@@ -255,7 +234,8 @@ div {
 					<td>${services3}</td>
 				</tr>
 				<tr>
-					<td align="right">Queue:</td><td>${queueOfTokens3}</td>
+					<td align="right">Queue:</td>
+					<td>${queueOfTokens3}</td>
 				</tr>
 				<tr>
 					<td align="right">Current Token:</td>
@@ -273,7 +253,8 @@ div {
 					<td>${services4}</td>
 				</tr>
 				<tr>
-					<td align="right">Queue:</td><td>${queueOfTokens4}</td>
+					<td align="right">Queue:</td>
+					<td>${queueOfTokens4}</td>
 				</tr>
 				<tr>
 					<td align="right">Current Token:</td>

@@ -15,9 +15,30 @@ public class Token {
 	 
 	private Integer tokenId;
 	private Integer customerId;
-	private String counter;
+	private Integer counter;
 	private String services;
 	private String status;
+	public Token() {
+		
+	}
+	
+	public Token(Integer tokenId, Integer customerId, Integer counter, String services, String status) {
+		super();
+		this.tokenId = tokenId;
+		this.customerId = customerId;
+		this.counter = counter;
+		this.services = services;
+		this.status = status;
+	}
+
+	public Token(WaitingToken wt) {
+		this.tokenId = wt.getTokenId();
+		this.customerId = wt.getCustomerId();
+		this.services = wt.getServices();
+		this.counter = wt.getCounter();
+		this.status = wt.getStatus();
+	}
+	
 	public Integer getTokenId() {
 		return tokenId;
 	}
@@ -30,10 +51,10 @@ public class Token {
 	public void setCustomerId(Integer customerId) {
 		this.customerId = customerId;
 	}
-	public String getCounter() {
+	public Integer getCounter() {
 		return counter;
 	}
-	public void setCounter(String counter) {
+	public void setCounter(Integer counter) {
 		this.counter = counter;
 	}
 	public String getServices() {
@@ -47,5 +68,8 @@ public class Token {
 	}
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	public String toString() {
+		return tokenId+"-"+customerId+"-"+counter+"-"+services+"-"+status;
 	}
 }

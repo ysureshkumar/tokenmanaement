@@ -34,7 +34,7 @@ public class TokenDAOImpl implements TokenDAO {
 	@Transactional
 	public boolean update(Token t) {
 		// TODO Auto-generated method stub
-		 ht.update(t);
+		 ht.saveOrUpdate(t);
 		 return true;
 	}
 

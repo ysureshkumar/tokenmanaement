@@ -1,8 +1,12 @@
 package com.pramati.controllers;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
@@ -26,16 +30,62 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.pramati.dao.CountersDAO;
 import com.pramati.dao.CustomerDAO;
 import com.pramati.dao.TokenDAO;
+import com.pramati.dao.UsersDAO;
 import com.pramati.model.Customer;
 import com.pramati.model.Token;
+import com.pramati.model.WaitingToken;
 
 @Controller
 public class FrontController {
 
 	XmlWebApplicationContext context = null;
 
+	int limit = 5;
+
+	// Active Queues
+	Queue<Integer> counterIQ = new LinkedList<Integer>();
+	Queue<Integer> counterIIQ = new LinkedList<Integer>();
+	Queue<Integer> counterIIIQ = new LinkedList<Integer>();
+	Queue<Integer> counterIIIIQ = new LinkedList<Integer>();
+
+	// Waiting Queues
+	Queue<WaitingToken> counterWQ = new LinkedList<WaitingToken>();
+
 	@RequestMapping(value = "/")
-	public ModelAndView getHome() {
+	public ModelAndView getHome(HttpServletRequest request) {
+
+		context = new XmlWebApplicationContext();
+		context.setConfigLocations("/WEB-INF/applicationContext.xml");
+		context.setServletContext(request.getServletContext());
+		context.refresh();
+
+		Map mp = new HashMap();
+		try {
+
+			CountersDAO counterDAO = (CountersDAO) context.getBean("countersDAO");
+			List<Token> ptokenList = counterDAO.getPendingTokens();
+			Iterator<Token> it = ptokenList.iterator();
+			while(it.hasNext()) {
+				Token tt = it.next();
+				int tid = tt.getTokenId();
+				int cid = tt.getCounter();
+				if (cid == 1) {
+					counterIQ.add(tid);
+				}
+				if (cid == 2) {
+					counterIIQ.add(tid);
+				}
+				if (cid == 3) {
+					counterIIIQ.add(tid);
+				}
+				if (cid == 4) {
+					counterIIIIQ.add(tid);
+				}
+			}
+			}
+			catch (Exception e) {
+				// TODO: handle exception
+			}
 		ModelAndView view = new ModelAndView("home");
 		return view;
 	}
@@ -70,17 +120,27 @@ public class FrontController {
 
 	@RequestMapping(value = "/loginvalidate", method = RequestMethod.POST)
 	public ModelAndView getLoginValidate(@RequestParam("username") String username,
-			@RequestParam("password") String password) {
-//		System.out.println("username:" + username);
-//		System.out.println("password:" + password);
+			@RequestParam("password") String password, HttpServletRequest request) {
+
+		context = new XmlWebApplicationContext();
+		context.setConfigLocations("/WEB-INF/applicationContext.xml");
+		context.setServletContext(request.getServletContext());
+		context.refresh();
+
+		UsersDAO usersDAO = (UsersDAO) context.getBean("usersDAO");
 
 		ModelAndView view = null;
-
-		if (username.equals("pramati") && password.equals("123")) {
+		Map mp = new HashMap();
+		String role = usersDAO.getRole(username, password);
+		if (role.equals("teller")) {
 			view = new ModelAndView("tokenmanagement");
 			return view;
+		} else if (role.equals("operator") || role.equals("manager")) {
+			view = new ModelAndView("managecounterspage");
+			return view;
 		} else {
-			view = new ModelAndView("failure");
+			mp.put("response", "Invalid Username and Password");
+			view = new ModelAndView("login", mp);
 			return view;
 		}
 	}
@@ -159,13 +219,13 @@ public class FrontController {
 			c = custDAO.getCustomerDetails(id);
 			String name = c.getName();
 			String phno = c.getPhno();
-			String service = c.getServiceType();
+			String servicetype = c.getServiceType();
 			String address = c.getAddress();
-			System.out.println("Record: " + id + ":" + name + ":" + phno + ":" + service + ":" + address);
+			System.out.println("Record: " + id + ":" + name + ":" + phno + ":" + servicetype + ":" + address);
 			mp.put("id", id);
 			mp.put("name", name);
 			mp.put("phno", phno);
-			mp.put("service", service);
+			mp.put("servicetype", servicetype);
 			mp.put("address", address);
 			System.out.println("mp.put(\"customerDetails_status\", \"\");");
 			mp.put("customerDetails_status", "");
@@ -247,55 +307,340 @@ public class FrontController {
 		context.refresh();
 
 		CountersDAO countersDAO = (CountersDAO) context.getBean("countersDAO");
+		TokenDAO tokenDAO = (TokenDAO) context.getBean("tokenDAO");
+
+		if (counterWQ.size() > 0) {
+
+			WaitingToken waitingToken = counterWQ.peek();
+
+			Integer tokenId = waitingToken.getTokenId();
+			Integer customerId = waitingToken.getCustomerId();
+			String serviceOpt = waitingToken.getServices();
+			String status = waitingToken.getStatus();
+			Integer counter = 0;
+
+			List<Integer> countersList = countersDAO.getCounters(serviceOpt);
+			System.out.println("countersList: " + countersList);
+			Iterator<Integer> it = countersList.iterator();
+
+			while (it.hasNext()) {
+				counter = it.next();
+				if (counter == 1) {
+					if (counterIQ.size() < limit) {
+						waitingToken.setCounter(counter);
+						Token t = new Token(waitingToken);
+						tokenDAO.save(t);
+						counterIQ.add(tokenId);
+						counterWQ.remove();
+						break;
+					}
+				}
+				if (counter == 2) {
+					if (counterIIQ.size() < limit) {
+						waitingToken.setCounter(counter);
+						Token t = new Token(waitingToken);
+						tokenDAO.save(t);
+						counterIIQ.add(tokenId);
+						counterWQ.remove();
+						break;
+					}
+				}
+				if (counter == 3) {
+					if (counterIIIQ.size() < limit) {
+						waitingToken.setCounter(counter);
+						Token t = new Token(waitingToken);
+						tokenDAO.save(t);
+						counterIIIQ.add(tokenId);
+						counterWQ.remove();
+						break;
+					}
+				}
+			}
+		}
 
 		Map mp = new HashMap();
 
 		String services1 = countersDAO.getServices(1);
 		mp.put("services1", services1);
+		mp.put("queueOfTokens1", counterIQ);
+		mp.put("currentToken1", counterIQ.peek());
 
 		String services2 = countersDAO.getServices(2);
 		mp.put("services2", services2);
+		mp.put("queueOfTokens2", counterIIQ);
+		mp.put("currentToken2", counterIIQ.peek());
 
 		String services3 = countersDAO.getServices(3);
 		mp.put("services3", services3);
+		mp.put("queueOfTokens3", counterIIIQ);
+		mp.put("currentToken3", counterIIIQ.peek());
 
 		String services4 = countersDAO.getServices(4);
 		mp.put("services4", services4);
+		mp.put("queueOfTokens4", counterIIIIQ);
+		mp.put("currentToken4", counterIIIIQ.peek());
 
 		ModelAndView view = new ModelAndView("displaycounters", mp);
 		return view;
 	}
 
 	@RequestMapping(value = "/createnewtoken", method = RequestMethod.POST)
-	public ModelAndView getCreateNewToken(
-			@RequestParam("customerId") String customerId, @RequestParam("tokenId") String tokenId, @RequestParam("services") String services, @RequestParam("counter") String counter, HttpServletRequest request) {
+	public ModelAndView getCreateNewToken(@RequestParam("customerId") Integer customerId,
+			@RequestParam("tokenId") Integer tokenId, @RequestParam("services") String services,
+			@RequestParam("servicetype") String serviceType, HttpServletRequest request) {
 
 		context = new XmlWebApplicationContext();
 		context.setConfigLocations("/WEB-INF/applicationContext.xml");
 		context.setServletContext(request.getServletContext());
 		context.refresh();
+
 		Map mp = new HashMap();
 		try {
-			TokenDAO tokenDAO = (TokenDAO) context.getBean("tokenDAO");
-			Token t = new Token();
-			t.setTokenId(Integer.parseInt(tokenId));
-			t.setCustomerId(Integer.parseInt(customerId));
-			t.setCounter(counter);
-			t.setServices(services);
-			t.setStatus("progress");
-			tokenDAO.save(t);
+
+			synchronized (this) {
+				Integer counter = 0;
+				TokenDAO tokenDAO = (TokenDAO) context.getBean("tokenDAO");
+				Token t = new Token();
+				t.setTokenId(tokenId);
+				t.setCustomerId(customerId);
+				if (serviceType.equalsIgnoreCase("prime")) {
+					counter = 4;
+					t.setCounter(4);
+				} else {
+					CountersDAO countersDAO = (CountersDAO) context.getBean("countersDAO");
+					List<Integer> countersList = countersDAO.getCounters(services);
+					System.out.println("countersList: " + countersList);
+					Iterator<Integer> it = countersList.iterator();
+					while (it.hasNext()) {
+						counter = it.next();
+						if (counter == 1) {
+							if (counterIQ.size() >= limit) {
+								continue;
+							}
+							t.setCounter(counter);
+							break;
+						}
+						if (counter == 2) {
+							if (counterIIQ.size() >= limit) {
+								continue;
+							}
+							t.setCounter(counter);
+							break;
+						}
+						if (counter == 3) {
+							if (counterIIIQ.size() >= limit) {
+								continue;
+							}
+							t.setCounter(counter);
+							break;
+						}
+					}
+				}
+				t.setServices(services);
+				t.setStatus("progress");
+
+				if (counter == 1) {
+					counterIQ.add(tokenId);
+					tokenDAO.save(t);
+				}
+				if (counter == 2) {
+					counterIIQ.add(tokenId);
+					tokenDAO.save(t);
+				}
+				if (counter == 3) {
+					counterIIIQ.add(tokenId);
+					tokenDAO.save(t);
+				}
+				if (counter == 4) {
+					counterIIIIQ.add(tokenId);
+					tokenDAO.save(t);
+				} else {
+					WaitingToken wq = new WaitingToken();
+					wq.setTokenId(tokenId);
+					wq.setCustomerId(customerId);
+					wq.setServices(services);
+					wq.setStatus("progress");
+					wq.setCounter(5);
+					counterWQ.add(wq);
+				}
+			}
 			mp.put("responseBack2", "Token Assigned Successfully");
 			ModelAndView view = new ModelAndView("redirect:/createtokenpage", mp);
-			//RedirectView view = new RedirectView("createtokenpage");
+			// RedirectView view = new RedirectView("createtokenpage");
 			return view;
 		} catch (Exception e) {
 			mp.put("responseBack2", "Token Assignment Failed");
 			ModelAndView view = new ModelAndView("redirect:/createtokenpage", mp);
-			//RedirectView view = new RedirectView("createtokenpage");
+			// RedirectView view = new RedirectView("createtokenpage");
 			return view;
 		}
-		
+
 	}
-	
+
+	@RequestMapping(value = "/managecounters", method = RequestMethod.GET)
+	public ModelAndView getManageCounters(HttpServletRequest request) {
+
+		context = new XmlWebApplicationContext();
+		context.setConfigLocations("/WEB-INF/applicationContext.xml");
+		context.setServletContext(request.getServletContext());
+		context.refresh();
+
+		CountersDAO countersDAO = (CountersDAO) context.getBean("countersDAO");
+		TokenDAO tokenDAO = (TokenDAO) context.getBean("tokenDAO");
+
+		/*
+		 * if (counterWQ.size() > 0) {
+		 * 
+		 * WaitingToken waitingToken = counterWQ.peek();
+		 * 
+		 * Integer tokenId = waitingToken.getTokenId(); Integer customerId =
+		 * waitingToken.getCustomerId(); String serviceOpt = waitingToken.getServices();
+		 * String status = waitingToken.getStatus(); Integer counter = 0;
+		 * 
+		 * List<Integer> countersList = countersDAO.getCounters(serviceOpt);
+		 * System.out.println("countersList: " + countersList); Iterator<Integer> it =
+		 * countersList.iterator();
+		 * 
+		 * while (it.hasNext()) { counter = it.next(); if (counter == 1) { if
+		 * (counterIQ.size() < limit) { waitingToken.setCounter(counter); Token t = new
+		 * Token(waitingToken); tokenDAO.save(t); counterIQ.add(tokenId);
+		 * counterWQ.remove(); break; } } if (counter == 2) { if (counterIIQ.size() <
+		 * limit) { waitingToken.setCounter(counter); Token t = new Token(waitingToken);
+		 * tokenDAO.save(t); counterIIQ.add(tokenId); counterWQ.remove(); break; } } if
+		 * (counter == 3) { if (counterIIIQ.size() < limit) {
+		 * waitingToken.setCounter(counter); Token t = new Token(waitingToken);
+		 * tokenDAO.save(t); counterIIIQ.add(tokenId); counterWQ.remove(); break; } } }
+		 * }
+		 */
+		Map mp = new HashMap();
+
+		String services1 = countersDAO.getServices(1);
+		mp.put("services1", services1);
+		mp.put("queueOfTokens1", counterIQ);
+		mp.put("currentToken1", counterIQ.peek());
+
+		String services2 = countersDAO.getServices(2);
+		mp.put("services2", services2);
+		mp.put("queueOfTokens2", counterIIQ);
+		mp.put("currentToken2", counterIIQ.peek());
+
+		String services3 = countersDAO.getServices(3);
+		mp.put("services3", services3);
+		mp.put("queueOfTokens3", counterIIIQ);
+		mp.put("currentToken3", counterIIIQ.peek());
+
+		String services4 = countersDAO.getServices(4);
+		mp.put("services4", services4);
+		mp.put("queueOfTokens4", counterIIIIQ);
+		mp.put("currentToken4", counterIIIIQ.peek());
+
+		ModelAndView view = new ModelAndView("managecounters", mp);
+		return view;
+	}
+
+	@RequestMapping(value = "/showcounters", method = RequestMethod.GET)
+	public ModelAndView getShowCounters(HttpServletRequest request) {
+
+		context = new XmlWebApplicationContext();
+		context.setConfigLocations("/WEB-INF/applicationContext.xml");
+		context.setServletContext(request.getServletContext());
+		context.refresh();
+
+		CountersDAO countersDAO = (CountersDAO) context.getBean("countersDAO");
+		TokenDAO tokenDAO = (TokenDAO) context.getBean("tokenDAO");
+
+		/*
+		 * if (counterWQ.size() > 0) {
+		 * 
+		 * WaitingToken waitingToken = counterWQ.peek();
+		 * 
+		 * Integer tokenId = waitingToken.getTokenId(); Integer customerId =
+		 * waitingToken.getCustomerId(); String serviceOpt = waitingToken.getServices();
+		 * String status = waitingToken.getStatus(); Integer counter = 0;
+		 * 
+		 * List<Integer> countersList = countersDAO.getCounters(serviceOpt);
+		 * System.out.println("countersList: " + countersList); Iterator<Integer> it =
+		 * countersList.iterator();
+		 * 
+		 * while (it.hasNext()) { counter = it.next(); if (counter == 1) { if
+		 * (counterIQ.size() < limit) { waitingToken.setCounter(counter); Token t = new
+		 * Token(waitingToken); tokenDAO.save(t); counterIQ.add(tokenId);
+		 * counterWQ.remove(); break; } } if (counter == 2) { if (counterIIQ.size() <
+		 * limit) { waitingToken.setCounter(counter); Token t = new Token(waitingToken);
+		 * tokenDAO.save(t); counterIIQ.add(tokenId); counterWQ.remove(); break; } } if
+		 * (counter == 3) { if (counterIIIQ.size() < limit) {
+		 * waitingToken.setCounter(counter); Token t = new Token(waitingToken);
+		 * tokenDAO.save(t); counterIIIQ.add(tokenId); counterWQ.remove(); break; } } }
+		 * }
+		 */
+		Map mp = new HashMap();
+
+		String services1 = countersDAO.getServices(1);
+		mp.put("services1", services1);
+		mp.put("queueOfTokens1", counterIQ);
+		mp.put("currentToken1", counterIQ.peek());
+
+		String services2 = countersDAO.getServices(2);
+		mp.put("services2", services2);
+		mp.put("queueOfTokens2", counterIIQ);
+		mp.put("currentToken2", counterIIQ.peek());
+
+		String services3 = countersDAO.getServices(3);
+		mp.put("services3", services3);
+		mp.put("queueOfTokens3", counterIIIQ);
+		mp.put("currentToken3", counterIIIQ.peek());
+
+		String services4 = countersDAO.getServices(4);
+		mp.put("services4", services4);
+		mp.put("queueOfTokens4", counterIIIIQ);
+		mp.put("currentToken4", counterIIIIQ.peek());
+
+		ModelAndView view = new ModelAndView("showcounters", mp);
+		return view;
+	}
+
+	@RequestMapping(value = "/managetoken", method = RequestMethod.POST)
+	public ModelAndView getManageToken(@RequestParam("tokenId") Integer tokenId, @RequestParam("action") String status,
+			HttpServletRequest request) {
+
+		context = new XmlWebApplicationContext();
+		context.setConfigLocations("/WEB-INF/applicationContext.xml");
+		context.setServletContext(request.getServletContext());
+		context.refresh();
+
+		Map mp = new HashMap();
+		try {
+
+			synchronized (this) {
+				TokenDAO tokenDAO = (TokenDAO) context.getBean("tokenDAO");
+				Token t = tokenDAO.getTokenDetails(tokenId);
+				System.out.println("Token: " + t);
+				t.setStatus(status);
+				System.out.println("Token: " + t);
+				tokenDAO.update(t);
+				Integer counter = t.getCounter();
+				if (counter == 1) {
+					counterIQ.remove();
+				}
+				if (counter == 2) {
+					counterIIQ.remove();
+				}
+				if (counter == 3) {
+					counterIIIQ.remove();
+				}
+				if (counter == 4) {
+					counterIIIIQ.remove();
+				}
+				mp.put("response", "Token " + status + " Successfully");
+				ModelAndView view = new ModelAndView("redirect:/managecounters", mp);
+				return view;
+			}
+		} catch (Exception e) {
+			mp.put("response", "Token " + status + " Successfully");
+			ModelAndView view = new ModelAndView("redirect:/managecounters", mp);
+			return view;
+		}
+
+	}
 
 }

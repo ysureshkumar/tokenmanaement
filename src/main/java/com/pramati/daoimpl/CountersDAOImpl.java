@@ -1,5 +1,7 @@
 package com.pramati.daoimpl;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.hibernate.HibernateException;
@@ -88,4 +90,49 @@ public class CountersDAOImpl implements CountersDAO {
 
 		return (String) hbcallback.doInHibernate(ht.getSessionFactory().openSession());
 	}
+public List<Integer> getCounters(final String service) {
+	HibernateCallback hbcallback = new HibernateCallback() {
+
+		List<Integer> countersList = new ArrayList<Integer>();
+
+		public Object doInHibernate(Session session) throws HibernateException {
+
+			Query query = session.createQuery("select counterId from com.pramati.model.Counters where services like '%"+service+"%' and counterType!='prime'" );
+
+			List l = query.list();
+
+			if (l != null) {
+				countersList.addAll(l);
+			} 
+					
+			System.out.println("countersList:" + countersList);
+			return countersList;
+		}
+	};	
+	return (List<Integer>) hbcallback.doInHibernate(ht.getSessionFactory().openSession());
+}
+
+public List<Token> getPendingTokens() {
+	HibernateCallback hbcallback = new HibernateCallback() {
+
+		List<Token> ptokenList = new ArrayList<Token>();
+
+		public Object doInHibernate(Session session) throws HibernateException {
+
+			Query query = session.createQuery(" from com.pramati.model.Token t where t.status='progress'");
+
+			List l = query.list();
+
+			Iterator<Token> it = l.iterator();
+			
+			while(it.hasNext()) {
+				ptokenList.add(it.next());
+			} 				
+			System.out.println("P Token List:" + ptokenList);
+			return ptokenList;
+		}
+	};	
+	return (List<Token>) hbcallback.doInHibernate(ht.getSessionFactory().openSession());
+}
+
 }

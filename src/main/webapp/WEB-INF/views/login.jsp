@@ -86,18 +86,20 @@ width:auto;
 		<form action="./loginvalidate" method="post">
 			<table> 
 				<tr>
-					<td><label> Username</label></td>
+					<td align="right"><label> Username</label></td>
 					<td><input type="text" name="username"
 						placeholder="Enter UserName"></td>
 				</tr>
 				<tr>
-					<td><label for="password"> Password</label></td>
+					<td align="right"><label for="password"> Password</label></td>
 					<td><input type="password" name="password"
 						placeholder="Enter password"></td>
 				</tr>
 				<tr>
 					<td colspan="2" align="center"><input type="submit" value="Login" /></td>
+					<td style="color:red" align="center">${response}</td>
 				</tr>
+				
 			</table>
 		</form>
 

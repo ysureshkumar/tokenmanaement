@@ -176,7 +176,7 @@ div {
 	}
 	
 	function validateTokenPage(myform1){
-		var serviceType = myform1.service.value;
+		var serviceType = myform1.servicetype.value;
 		var checkboxS1 = document.getElementById("s1");
 		var checkboxS2 = document.getElementById("s2");
 		var checkboxS3 = document.getElementById("s3");
@@ -269,10 +269,9 @@ div {
 
 				<tr>
 					<td><label> Service Type</label></td>
-					<td><input type="text" name="tservice" value="${service}"
+					<td><input type="text" name="tservicetype" value="${servicetype}"
 						disabled="disabled"/>
-						<input type="hidden" name="service" value="${service}"
-						disabled="disabled"/></td>
+						<input type="hidden" name="servicetype" value="${servicetype}"/></td>
 				</tr>
 
 				<tr>
@@ -281,15 +280,23 @@ div {
 						style="background-color: cyan; color: black" disabled="disabled"/>
 						<input type="hidden" name="tokenId" value="${nextTokenId}"/></td>
 				</tr>
-
 				<tr>
+					<td><label> Services Want to Opt:</label></td>
+					<td><input type="radio" name="services" id="services" value="S1" checked="checked"/>S1 
+					    <input type="radio" name="services" id="services" value="S2"/>S2 
+						<input type="radio" name="services" id="services" value="S3"/>S3
+						<!-- <input type="hidden" name="services" id="services" value=""/></td> -->
+					</td>
+				</tr>
+				
+				<!-- <tr>
 					<td><label> Services Want to Opt:</label></td>
 					<td><input type="checkbox" name="s1" id="s1" value="s1" onclick="combineServices()"/>S1 
 					    <input type="checkbox" name="s2" id="s2" value="s2" onclick="combineServices()"/>S2 
 						<input type="checkbox" name="s3" id="s3" value="s3" onclick="combineServices()"/>S3
 						<input type="hidden" name="services" id="services" value=""/></td>
 				</tr>
-				<tr>
+				 --><!-- <tr>
 					<td><label> Counters</label></td>
 
 					<td><select name="counter">
@@ -300,22 +307,22 @@ div {
 					</select></td>
 
 				</tr>
-				<tr>
+ 				-->
+ 				<tr>
 				</tr>
 				<tr>
 					<td><input type="submit" value="create" /></td>
 					<td><input type="button" value="next"
 						onclick="getNextToken();" /></td>
 					<td><c:if test="${responseBack2 != null}">
-							<div>${responseBack2}</div>
+							${responseBack2}
 						</c:if></td>
 				</tr>
 			</table>
 		</form>
 	</div>
 
-
-	<%-- <div class="counterDetails">
+<%-- <div class="counterDetails">
 		<label>Check Counter Dtails: </label>
 		<form name="myForm2" id="myForm2" method="post">
 			<table>
